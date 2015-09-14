@@ -61,7 +61,7 @@ open(IN, "$cat $sam \| grep -v \"XF:Z:ENS\" \| $samtools view -S -b -T $fasta - 
 
 # variables to hold the results
 my $r = undef;
-my $g - undef;
+my $g = undef;
 
 while(<IN>) {
 
