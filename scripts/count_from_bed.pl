@@ -18,7 +18,7 @@ use POSIX;
 
 # if not in your $PATH, edit the variables below
 my $samtools = "samtools";
-my $bedtools = "intersectBed";
+my $bedtools = "bedtools intersect";
 
 # we should have two arguments, a SAM file 
 # and a BED file
