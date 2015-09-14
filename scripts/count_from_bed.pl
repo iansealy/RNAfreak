@@ -3,7 +3,7 @@
 #
 # This script is designed to be used in combination with others, see https://github.com/mw55309/RNAfreak
 #
-# The script takes a SAM output file from htseq-count, and pipes the non-uniquely mapped
+# The script takes a SAM or BAM output file from htseq-count, and pipes the non-uniquely mapped
 # reads through samtools and BEDTools to create "multi-map groups" - that is, groups of
 # genes that multi-mapped reads uniquely map to.  It then counts the number of MMGs 
 # created and outputs to STDOUT
@@ -20,17 +20,16 @@ use POSIX;
 my $samtools = "samtools";
 my $bedtools = "bedtools intersect";
 
-# we should have two arguments, a SAM file 
-# and a BED file
+# we should have three arguments, a SAM or BAM file, a BED file and a FASTA file
 unless (@ARGV==3) {
-	warn "Usage: perl count_from_bed.pl <sam file> <bed file> <fasta file>\n";
+	warn "Usage: perl count_from_bed.pl <sam/bam file> <bed file> <fasta file>\n";
 	exit;
 }
 
-# get SAM file from the command line
-my $sam = shift;
-unless (-f $sam) {
-	warn "$sam is not a file\n";
+# get SAM or BAM file from the command line
+my $sam_or_bam = shift;
+unless (-f $sam_or_bam) {
+	warn "$sam_or_bam is not a file\n";
 	exit;
 }
 
@@ -50,14 +49,16 @@ unless (-f $fasta && -f "$fasta.fai") {
 
 # figure out if it's zipped
 my $cat = "cat";
-if ($sam =~ m/\.gz/) {
+if ($sam_or_bam =~ m/\.gz$/) {
 	$cat = "zcat";
+} elsif ($sam_or_bam =~ m/\.bam$/) {
+	$cat = "samtools view"
 }
 
 # anything matching XF:Z:ENS has successfully mapped a read to a gene
 # so we can ignore them.  Everything else is fair game
 # BEDTools expects a BAM file so we need to pipe through samtools
-open(IN, "$cat $sam \| grep -v \"XF:Z:ENS\" \| $samtools view -S -b -T $fasta - \| $bedtools -abam - -bed -wb -b $bed |");
+open(IN, "$cat $sam_or_bam \| grep -v \"XF:Z:ENS\" \| $samtools view -S -b -T $fasta - \| $bedtools -abam - -bed -wb -b $bed |");
 
 # variables to hold the results
 my $r = undef;
